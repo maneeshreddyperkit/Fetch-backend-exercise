@@ -32,3 +32,7 @@ gunicorn==20.1.0  # WSGI HTTP server for production deployment
 
 # If using specific cloud providers (e.g., AWS)
 boto3==1.28.1  # AWS SDK for Python
+
+# Use the python-dotenv library to load environment variables from a .env file.
+python-dotenv
+
