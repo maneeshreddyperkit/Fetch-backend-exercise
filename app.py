@@ -26,6 +26,48 @@ print(f"Running in {flask_env} mode")
 # In-memory storage for storing processed receipts and their points
 receipts_data = {}
 
+# Validation Regex Patterns
+RETAILER_REGEX = r"^[\w\s\-\&]+$"  # Retailer name can include alphanumeric characters, spaces, hyphens, and ampersands
+TOTAL_REGEX = r"^\d+\.\d{2}$"  # Total must match the pattern of a valid monetary value (e.g., "6.49")
+PRICE_REGEX = r"^\d+\.\d{2}$"  # Item price must match the pattern of a valid monetary value (e.g., "6.49")
+DATE_REGEX = r"^\d{4}-\d{2}-\d{2}$"  # Date must be in the format YYYY-MM-DD
+TIME_REGEX = r"^\d{2}:\d{2}$"  # Time must be in the format HH:MM
+
+# Function to validate receipt fields based on the API schema
+def validate_receipt(receipt):
+    # Validate retailer name
+    if not re.match(RETAILER_REGEX, receipt.get("retailer", "")):
+        return "Invalid retailer name format", 400
+
+    # Validate total amount
+    total = receipt.get("total", "")
+    if not re.match(TOTAL_REGEX, total):
+        return "Invalid total amount format", 400
+
+    # Validate purchase date
+    purchase_date = receipt.get("purchaseDate", "")
+    if not re.match(DATE_REGEX, purchase_date):
+        return "Invalid purchase date format, expected YYYY-MM-DD", 400
+
+    # Validate purchase time
+    purchase_time = receipt.get("purchaseTime", "")
+    if not re.match(TIME_REGEX, purchase_time):
+        return "Invalid purchase time format, expected HH:MM", 400
+
+    # Validate items list
+    items = receipt.get("items", [])
+    if not isinstance(items, list) or len(items) < 1:
+        return "Items must be a non-empty array", 400
+
+    # Validate each item's short description and price
+    for item in items:
+        description = item.get("shortDescription", "").strip()
+        price = item.get("price", "")
+        if not description or not re.match(PRICE_REGEX, price):
+            return f"Invalid item description or price for item: {description}", 400
+
+    return None, 200  # Return success if validation passes
+
 # Function to calculate points based on the receipt details
 def calculate_points(receipt):
     points = 0  # Initialize points to 0
@@ -102,6 +144,11 @@ def process_receipt():
         receipt = request.json  # Get the JSON data from the incoming request
         if not receipt:  # Check if the receipt data is missing or invalid
             return jsonify({"error": "Invalid receipt data"}), 400  # Return a 400 error if invalid
+
+         # Validate receipt data against the schema
+        error_message, status_code = validate_receipt(receipt)
+        if status_code != 200:
+            return jsonify({"error": error_message}), status_code
 
         # Generate a unique ID for this receipt
         receipt_id = str(uuid.uuid4())  # Use UUID to generate a unique identifier
