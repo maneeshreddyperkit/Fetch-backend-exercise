@@ -179,6 +179,16 @@ Once the container is running, you can access the application at:
 http://localhost:5000
 ```
 
+## Environment Variables
+To run this application, you need to set up environment variables in a `.env` file.
+
+Example `.env` file:
+FLASK_ENV=development
+SECRET_KEY=your_secret_key_here
+
+- `FLASK_ENV`: Set to `development` for debug mode or `production` for live environments.
+- `SECRET_KEY`: A secret key used for securely signing sessions in Flask.
+
 
 ## Notes
 - The application uses in-memory storage, so all processed receipts will be lost when the server stops.
