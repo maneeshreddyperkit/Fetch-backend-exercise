@@ -3,9 +3,25 @@ from flask import Flask, request, jsonify  # Flask for web framework, request an
 import uuid  # UUID to generate unique IDs for each receipt
 import re  # Regex, though not currently used in this code
 from datetime import datetime  # For parsing and comparing date and time
+from dotenv import load_dotenv  # Import dotenv for loading environment variables
+import os  # Import os module for accessing environment variables
+
+# Load environment variables
+load_dotenv()  # Load the environment variables from a .env file
 
 # Initialize the Flask application
 app = Flask(__name__)
+
+app.secret_key = os.getenv("SECRET_KEY", "default_secret_key")  
+# Set the application's secret key using the value from the "SECRET_KEY" environment variable
+# If "SECRET_KEY" is not defined in the .env file, it defaults to "default_secret_key"
+
+flask_env = os.getenv("FLASK_ENV", "production")  
+# Retrieve the "FLASK_ENV" environment variable to determine the application's environment
+# Default to "production" if the variable is not set in the .env file
+
+print(f"Running in {flask_env} mode")  
+# Print a message indicating the current environment mode of the application
 
 # In-memory storage for storing processed receipts and their points
 receipts_data = {}
